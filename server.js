@@ -138,7 +138,6 @@ function prompt() {
           ]).then(answers => {
             console.log(answers);
             orm.addEmployee(answers.fname, answers.lname, answers.role, answers.dept, answers.manager, function(result) {
-                if (err) throw err;
                 console.log(result.affectedRows + " item updated\n");
                 anotherAction();
             });
@@ -148,6 +147,8 @@ function prompt() {
           });
       }
       else if (answers.selection === "Add Role") {
+        orm.departmentList(function(result) {
+        var departmentsForLater = result;
         inquirer.prompt([
             {
               type: "input",
@@ -160,23 +161,16 @@ function prompt() {
               message: "Role Salary",
             },
             {
-              type: "input",
+              type: "list",
               name: "department",
-              message: "Role Department",
+              message: "Choose Department",
+              choices: departmentsForLater
             }
           ]).then(answers => {
-            console.log(answers);
-            connection.query(
-              "INSERT INTO role (title, salary, department) VALUES (?, ?, ?)", 
-            [
-              answers.title, 
-              answers.salary, 
-              answers.department, 
-            ],
-              function(err, result) {
-                if (err) throw err;
+            orm.addRole(answers.title, answers.salary, answers.department, function(result) {
                 console.log(result.affectedRows + " item updated\n");
                 anotherAction();
+              });
             });
           });
       }
@@ -188,20 +182,15 @@ function prompt() {
               message: "Department Name",
             },
           ]).then(answers => {
-            console.log(answers);
-            connection.query(
-              "INSERT INTO department (name) VALUES (?)", 
-            [
-              answers.name, 
-            ],
-              function(err, result) {
-                if (err) throw err;
+            orm.addDepartment(answers.name, function(result) {
                 console.log(result.affectedRows + " item updated\n");
                 anotherAction();
             });
           });
       }
       else if (answers.selection === "Update Employee Manager") {
+        orm.managerList(function(result) {
+        var managersForLater = result;  
         inquirer.prompt([
             {
               type: "input",
@@ -209,22 +198,16 @@ function prompt() {
               message: "Employee ID Number",
             },
             {
-              type: "input",
+              type: "list",
               name: "manager",
-              message: "New Manager",
+              message: "Choose your new manager",
+              choices: managersForLater
             }
           ]).then(answers => {
-            console.log(answers);
-            connection.query( 
-              "UPDATE employee SET manager_id (SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?) WHERE id = ?", 
-            [
-              answers.manager,
-              parseInt(answers.id),
-            ],
-              function(err, result) {
-                if (err) throw err;
+            orm.updateManager(answers.id, answers.manager, function(result) {
                 console.log(result.affectedRows + " item updated\n");
-                anotherAction();
+                anotherAction(); 
+            });
             });
           });
       }
@@ -236,60 +219,47 @@ function prompt() {
               message: "Employee ID Number",
             },
           ]).then(answers => {
-            console.log(answers);
-            connection.query( 
-              "DELETE FROM employee WHERE id = ?", 
-            [
-              parseInt(answers.id),
-            ],
-              function(err, result) {
-                if (err) throw err;
+              orm.deleteEmployee(answers.id, function(result) {
                 console.log(result.affectedRows + " item updated\n");
-                anotherAction();
+                anotherAction(); 
+              });
             });
-          });
       }
       else if (answers.selection === "Remove Role") {
+        orm.rolesList(function(result) {
+        var rolesForLater = result;         
         inquirer.prompt([
             {
-              type: "input",
-              name: "name",
-              message: "Role Name",
+              type: "list",
+              name: "role",
+              message: "Choose a role to remove",
+              choices: rolesForLater
             },
           ]).then(answers => {
-            console.log(answers);
-            connection.query(
-              "DELETE FROM role WHERE title = ?", 
-            [
-              answers.name,
-            ],
-              function(err, result) {
-                if (err) throw err;
-                console.log(result.affectedRows + " item updated\n")
-                anotherAction()
-            });
-          });
-      }
-      else if (answers.selection === "Remove Department") {
-        inquirer.prompt([
-            {
-              type: "input",
-              name: "name",
-              message: "Department Name",
-            },
-          ]).then(answers => {
-            console.log(answers);
-            connection.query(
-              "DELETE FROM department WHERE name = ?", 
-            [
-              answers.name,
-            ],
-              function(err, result) {
-                if (err) throw err;
+              orm.removeRole(answers.role, function(result) {
                 console.log(result.affectedRows + " item updated\n");
-                anotherAction();
-            }); 
-          }); 
+                anotherAction(); 
+              });
+            });
+      });
+    }
+      else if (answers.selection === "Remove Department") {
+        orm.departmentList(function(result) {
+            var departmentsForLater = result;         
+            inquirer.prompt([
+                {
+                  type: "list",
+                  name: "department",
+                  message: "Choose a department to remove",
+                  choices: departmentsForLater
+                },
+              ]).then(answers => {
+                  orm.removeDepartment(answers.department, function(result) {
+                    console.log(result.affectedRows + " item updated\n");
+                    anotherAction(); 
+                  });
+                });
+          });
       };
     });
 };

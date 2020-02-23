@@ -61,7 +61,7 @@ var orm = {
     });
   },
   selectRoles: function(cb) {
-    var queryString = "SELECT department.name, role.title, role.salary FROM role JOIN department ON role.department_id=department.id ORDER BY role.id ASC, role.title DESC";
+    var queryString = "SELECT department.name AS department, role.title, role.salary FROM role JOIN department ON role.department_id=department.id ORDER BY role.id ASC, role.title DESC";
     connection.query(queryString, function(err, result) {
       if (err) throw err;
       cb(result);
@@ -76,16 +76,84 @@ var orm = {
   },
   addEmployee: function(fname, lname, role, dept, manager, cb) {
     console.log(fname,lname,role,dept,manager)
-    var queryString =
-  `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES(?,?,(SELECT role.id FROM role JOIN department ON role.department_id=department.id WHERE role.title = ? AND department.name = ?),(SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?)`;
+    var queryString = "SELECT role.id FROM role JOIN department ON role.department_id=department.id WHERE role.title = ? AND department.name = ?";
+    connection.query(queryString, [role, dept], function(err, role) {
+      console.log(role[0].id);
+      if(err) throw err;
 
-  // INSERT INTO employee (first_name, last_name, role_id, manager_id)
-  // VALUES( ?, ?, role_id IN (SELECT id FROM role WHERE role.title = ? AND department_id=department.id WHERE department.name = ?), manager_id IN (SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?))`;
-  // 'INSERT INTO employee (first_name, last_name, role, department, manager) VALUES (?, ?, ?, ?, ?)';
-    connection.query(queryString, [fname, lname, role, dept, manager], function(err, result) {
-      if (err) throw err;
+    var queryString = "SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?";
+    connection.query(queryString, [manager], function(err, manID) {
+      console.log(manID[0].id);
+      if(err) throw err;
+     
+    var queryString = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+    connection.query(queryString, [fname, lname, role[0].id, manID[0].id], function(err, result){
+      if(err) throw err;
       cb(result);
     });
+    });
+  });
+
+  //   var queryString =
+  // `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES(?,?,(SELECT role.id FROM role JOIN department ON role.department_id=department.id WHERE role.title = ? AND department.name = ?),(SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?)`;
+
+  // // INSERT INTO employee (first_name, last_name, role_id, manager_id)
+  // // VALUES( ?, ?, role_id IN (SELECT id FROM role WHERE role.title = ? AND department_id=department.id WHERE department.name = ?), manager_id IN (SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?))`;
+  // // 'INSERT INTO employee (first_name, last_name, role, department, manager) VALUES (?, ?, ?, ?, ?)';
+  //   connection.query(queryString, [fname, lname, role, dept, manager], function(err, result) {
+  //     if (err) throw err;
+  //     cb(result);
+    //});
+  },
+  addRole: function(title, salary, dept, cb) {
+    var queryString = 'INSERT INTO role (title, salary, department_id) VALUES (?,?,(SELECT id FROM department WHERE name = ?))';
+    connection.query(queryString, [title, salary, dept], function(err, result) {
+      if (err) throw err;
+      cb(result);
+    })
+  },
+  addDepartment: function(name, cb) {
+    var queryString = 'INSERT INTO department (name) VALUES (?)';
+    connection.query(queryString, name, function(err, result) {
+      if (err) throw err;
+      cb(result);
+    })
+  },
+  updateManager: function(empID, manager, cb) {
+    var queryString = 'SELECT id FROM employee WHERE CONCAT(first_name, " ",last_name) = ?';
+    connection.query(queryString, [manager], function(err, result) {
+      if (err) throw err;
+      var queryString = "UPDATE employee SET manager_id = ? WHERE employee.id = ?";
+      // console.log(result);
+      // console.log(result.id);
+      // console.log(result[0].id);
+
+      connection.query(queryString,[result[0].id,empID],function(err,result) {
+        if (err) throw err;
+        cb(result);
+      });
+    });
+  },
+  deleteEmployee: function(empID, cb) {
+    var queryString = 'DELETE FROM employee WHERE id = ?';
+    connection.query(queryString, empID, function(err, result) {
+      if (err) throw err;
+      cb(result);
+    })
+  },
+  removeRole: function(role, cb) {
+    var queryString = 'DELETE FROM role WHERE title = ?';
+    connection.query(queryString, role, function(err, result) {
+      if (err) throw err;
+      cb(result);
+    })
+  },
+  removeDepartment: function(dept, cb) {
+    var queryString = 'DELETE FROM department WHERE name = ?';
+    connection.query(queryString, dept, function(err, result) {
+      if (err) throw err;
+      cb(result);
+    })
   },
   getMeOuttaHere: function() {
     console.log(`\n\n ______   ______   ______   _____    ______  __    _   ______ 
