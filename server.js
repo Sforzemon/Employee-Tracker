@@ -1,72 +1,111 @@
 var inquirer = require("inquirer");
-var mysql = require("mysql");
-var express = require("express")
 var cTable = require("console.table");
-var password = require("./password");
+var orm = require("./config/orm")
 
-var app = express();
+openingCredits();
 
-var PORT = process.env.PORT || 8080;
+function openingCredits(){
+console.log( 
+`\n\n         ______     __    __     ______   __         ______     __  __     ______     ______    
+        /\\  ___\\   /\\ "-./  \\   /\\  == \\ /\\ \\       /\\  __ \\   /\\ \\_\\ \\   /\\  ___\\   /\\  ___\\   
+        \\ \\  __\\   \\ \\ \\-./\\ \\  \\ \\  _-/ \\ \\ \\____  \\ \\ \\/\\ \\  \\ \\____ \\  \\ \\  __\\   \\ \\  __\\   
+         \\ \\_____\\  \\ \\_\\ \\ \\_\\  \\ \\_\\    \\ \\_____\\  \\ \\_____\\  \\/\\_____\\  \\ \\_____\\  \\ \\_____\\ 
+          \\/_____/   \\/_/  \\/_/   \\/_/     \\/_____/   \\/_____/   \\/_____/   \\/_____/   \\/_____/ `)
+console.log(
+` __    __     ______     __   __     ______     ______     ______     __    __     ______     __   __     ______  
+/\\ "-./  \\   /\\  __ \\   /\\ "-.\\ \\   /\\  __ \\   /\\  ___\\   /\\  ___\\   /\\ "-./  \\   /\\  ___\\   /\\ "-.\\ \\   /\\__  _\\ 
+\\ \\ \\-./\\ \\  \\ \\  __ \\  \\ \\ \\-.  \\  \\ \\  __ \\  \\ \\ \\__ \\  \\ \\  __\\   \\ \\ \\-./\\ \\  \\ \\  __\\   \\ \\ \\-.  \\  \\/_/\\ \\/ 
+ \\ \\_\\ \\ \\_\\  \\ \\_\\ \\_\\  \\ \\_\\\\"\\_\\  \\ \\_\\ \\_\\  \\ \\_____\\  \\ \\_____\\  \\ \\_\\ \\ \\_\\  \\ \\_____\\  \\ \\_\\\\"\\_\\    \\ \\_\\ 
+  \\/_/  \\/_/   \\/_/\\/_/   \\/_/ \\/_/   \\/_/\\/_/   \\/_____/   \\/_____/   \\/_/  \\/_/   \\/_____/   \\/_/ \\/_/     \\/_/ \n\n`)
 
-var connection = mysql.createConnection({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: password,
-  database: "employee_trackerDB"
-});
+prompt();
+};
 
 function prompt() {
+    //this tool too long... 
+//     console.log( 
+// `\n\n         ______     __    __     ______   __         ______     __  __     ______     ______    
+//         /\\  ___\\   /\\ "-./  \\   /\\  == \\ /\\ \\       /\\  __ \\   /\\ \\_\\ \\   /\\  ___\\   /\\  ___\\   
+//         \\ \\  __\\   \\ \\ \\-./\\ \\  \\ \\  _-/ \\ \\ \\____  \\ \\ \\/\\ \\  \\ \\____ \\  \\ \\  __\\   \\ \\  __\\   
+//          \\ \\_____\\  \\ \\_\\ \\ \\_\\  \\ \\_\\    \\ \\_____\\  \\ \\_____\\  \\/\\_____\\  \\ \\_____\\  \\ \\_____\\ 
+//           \\/_____/   \\/_/  \\/_/   \\/_/     \\/_____/   \\/_____/   \\/_____/   \\/_____/   \\/_____/ `)
+//     console.log(
+// ` __    __     ______     __   __     ______     ______     ______     __    __     ______     __   __     ______  
+// /\\ "-./  \\   /\\  __ \\   /\\ "-.\\ \\   /\\  __ \\   /\\  ___\\   /\\  ___\\   /\\ "-./  \\   /\\  ___\\   /\\ "-.\\ \\   /\\__  _\\ 
+// \\ \\ \\-./\\ \\  \\ \\  __ \\  \\ \\ \\-.  \\  \\ \\  __ \\  \\ \\ \\__ \\  \\ \\  __\\   \\ \\ \\-./\\ \\  \\ \\  __\\   \\ \\ \\-.  \\  \\/_/\\ \\/ 
+//  \\ \\_\\ \\ \\_\\  \\ \\_\\ \\_\\  \\ \\_\\\\"\\_\\  \\ \\_\\ \\_\\  \\ \\_____\\  \\ \\_____\\  \\ \\_\\ \\ \\_\\  \\ \\_____\\  \\ \\_\\\\"\\_\\    \\ \\_\\ 
+//   \\/_/  \\/_/   \\/_/\\/_/   \\/_/ \\/_/   \\/_/\\/_/   \\/_____/   \\/_____/   \\/_/  \\/_/   \\/_____/   \\/_/ \\/_/     \\/_/ \n\n`)
+  //ok,time for actual coding
     inquirer.prompt([
       {
         type: "list",
         name: "selection",
         message: "Select Action",
-        choices: ["View All Employees", "View Employees By Manager", "View Roles", "View Departments", "Add Employee", "Add Role", "Add Department", "Update Employee Manager", "Remove Employee", "Remove Role", "Remove Department"]
+        choices: ["View All Employees", "View All Managers", "View Employees By Manager", "View Roles", "View Departments", "Add Employee", "Add Role", "Add Department", "Update Employee Manager", "Remove Employee", "Remove Role", "Remove Department"]
       }
     ]) .then(answers => {
-      console.log(answers.selection);
-      if (answers.selection === "View All Employees") {        
-            connection.query("SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee JOIN role ON employee.role_id =role.id JOIN department ON role.department_id=department.id ORDER BY id ASC", function(err, result) {
+        console.log(answers.selection);
+        
+        if (answers.selection === "View All Employees") { 
+            //My testing section
+            // orm.rolesList(function(result) {
+            //     const table = cTable.getTable(result)
+            //     console.log(table);
+            //     anotherAction();
+            //   });    
+            // end of test section
+            orm.selectEmployees(function(result) {
               const table = cTable.getTable(result)
               console.log(table);
               anotherAction();
-            });
-      } 
-      else if (answers.selection === "View Employees By Manager") {
-        inquirer.prompt([
-            {
-              type: "list",
-              name: "selection",
-              message: "Select a Manager",
-              choices: ["Walt Disney", "Scrooge McDuck", "Mickey Mouse", "Goofy Goof", "Chip Squirrel", "Dale Squirrel"]
-            }
-            //FIX THIS!!!!!!
-          ]).then(answers => {
-            console.log(answers);
-            connection.query("SELECT CONCAT (first_name, ' ', last_name) AS managers_underlings FROM employee WHERE manager_id IN (SELECT id FROM employee WHERE CONCAT(first_name,' ',last_name) = ?)", 
-            [
-              answers.selection
-            ],
-            function(err, result) {
-              console.table(result);
+            });     
+        }
+        else if (answers.selection === "View All Managers") {        
+            orm.selectManagers(function(result) {
+              const table = cTable.getTable(result)
+              console.log(table);
               anotherAction();
+            });     
+        }  
+        else if (answers.selection === "View Employees By Manager") {
+            orm.managerList(function(result) {
+            var managersForLater = result;  
+            inquirer.prompt([
+                {
+                type: "list",
+                name: "selection",
+                message: "Select a Manager",
+                choices: managersForLater
+                }
+            ]).then(answers => {  
+                console.log(answers);
+                orm.managers_underlings(answers.selection, function(result) {
+                    console.table(result);
+                    anotherAction();
+                });
             });
-          });
+        });
       }
       else if (answers.selection === "View Roles") {
-        connection.query("SELECT  department.name, role.title, role.salary FROM role JOIN department ON role.department_id=department.id", function(err, result) {
+        orm.selectRoles(function(result) {
           console.table(result);
           anotherAction();
         });
       }
       else if (answers.selection === "View Departments") {
-        connection.query("SELECT * FROM department", function(err, result) {
+        orm.selectDepartments(function(result) {
           console.table(result);
           anotherAction();
         });
       }
       else if (answers.selection === "Add Employee") {
+        orm.managerList(function(result) {
+        var managersForLater = result;
+        orm.rolesList(function(result) {
+        var rolesForLater = result;
+        orm.departmentList(function(result) {
+        var departmentsForLater = result;
+        // console.log(rolesForLater)   
         inquirer.prompt([
             {
               type: "input",
@@ -79,35 +118,32 @@ function prompt() {
               message: "Employee Last Name",
             },
             {
-              type: "input",
+              type: "list",
               name: "role",
-              message: "Employee Job Title",
+              message: "Choose your role",
+              choices: rolesForLater
             },
             {
-              type: "input",
-              name: "department",
-              message: "Employee Department",
+              type: "list",
+              name: "dept",
+              message: "Choose your department",
+              choices: departmentsForLater
             },
             {
               type: "list",
               name: "manager",
-              message: "Employee Manager",
+              message: "Choose your manager",
+              choices: managersForLater
             }
           ]).then(answers => {
             console.log(answers);
-            connection.query(
-                "INSERT INTO employee (first_name, last_name, role, department, manager) VALUES (?, ?, ?, ?, ?)", 
-            [
-              answers.fname, 
-              answers.lname,
-              answers.role, 
-              answers.department, 
-              answers.manager
-            ],
-              function(err, result) {
+            orm.addEmployee(answers.fname, answers.lname, answers.role, answers.dept, answers.manager, function(result) {
                 if (err) throw err;
                 console.log(result.affectedRows + " item updated\n");
                 anotherAction();
+            });
+                });
+        });
             });
           });
       }
@@ -256,7 +292,7 @@ function prompt() {
           }); 
       };
     });
-  };
+};
 
   function anotherAction() {
     inquirer.prompt([
@@ -267,24 +303,10 @@ function prompt() {
           },
         ]).then(answers => {
           if (!answers.another) {
-            connection.end()
-            console.log("Thank you, come again. Hopefully you didn't ruin my database.")
+            orm.getMeOuttaHere();
           } 
           else {
             prompt();
           }
         });
     };
-
-connection.connect(function(err) {
-    if (err) {
-        console.error("error connecting: " + err.stack);
-        return;
-    }
-    console.log("connected as id " + connection.threadId);
-    prompt();
-});
-
-app.listen(PORT, function() {
-    console.log("Server listening on: http://localhost:" + PORT);
-  });
